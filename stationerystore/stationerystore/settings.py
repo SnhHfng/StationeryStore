@@ -65,7 +65,13 @@ REST_FRAMEWORK = {
     ]
 }
 
-OAUTH2_PROVIDER = {'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore'}
+OAUTH2_PROVIDER = {
+    'SCOPES': {
+        'read': 'Read scope',
+        'write': 'Write scope',
+    },
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 36000,
+}
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
@@ -105,25 +111,17 @@ WSGI_APPLICATION = 'stationerystore.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv("NAME"),
-        'USER': os.getenv("USER"),
-        'PASSWORD': os.getenv("PASSWORD"),
-        'HOST': ''  # mặc định localhost
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+
 
 import pymysql
 
 pymysql.install_as_MySQLdb()
 
-# Cloudinary
-cloudinary.config(
-    cloud_name=os.getenv('cloud_name'),
-    api_key=os.getenv('api_key'),
-    api_secret=os.getenv('api_secret'),
-    secure=True
-)
 
 # Setting config send email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -179,3 +177,32 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ==========================
+# EMAIL CONFIGURATION
+# ==========================
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "phamhonganh1811@gmail.com"              # <== Thay bằng email của bạn
+EMAIL_HOST_PASSWORD = "xcgtntfnhtenkohl"       # <== Không dùng mật khẩu Gmail thật
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+    ],
+}
+
+import cloudinary
+import os
+
+import cloudinary
+
+cloudinary.config(
+    cloud_name = 'drbvnyrpy',
+    api_key = '244972644275967',
+    api_secret = '7cy40gwNRXKvlSWFQY7se_POhuE',
+    secure = True
+)

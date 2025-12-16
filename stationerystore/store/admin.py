@@ -287,3 +287,7 @@ admin_site.register(LoyaltyPoint, LoyaltyPointAdmin)
 admin_site.register(LoyaltyPointHistory, LoyaltyPointHistoryAdmin)
 
 admin_site.register(AccessToken)
+#from oauth2_provider.models import Application
+from django.contrib import admin
+
+#admin.site.register(Application)

@@ -22,39 +22,50 @@ const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
     const nav = useNavigate();
 
-    // Đăng nhập thường
+    // ✅ Đăng nhập chuẩn OAuth2 (đã sửa)
     const handleLogin = async (e) => {
         e.preventDefault();
+
         if (!user.username || !user.password) {
             setMessage("Vui lòng nhập tên đăng nhập và mật khẩu.");
             return;
         }
+
         try {
             setLoading(true);
-            const response = await Apis.post(endpoint["login"], {
-                ...user,
-                client_id: "H9NEh1H8FbCa6g7LaUbQJwUJHrGx5mqkMbJB7wW7",
-                client_secret:
-                    "MLXdmCFbDWcf8d4i3uRheC6IUeJjPeFcjC59ztuLMDllTjbEiQl9gPbwt8dnZiOThix2AtlvbOHaEzsHDZG3WvkKZlxbHlTMv8QuLcBJS2VRzE4933FObB59zP4FBswD",
-                grant_type: "password",
+
+            // 👉 Chuẩn hóa kiểu gửi dữ liệu OAuth2: x-www-form-urlencoded
+            const formData = new URLSearchParams();
+            formData.append("grant_type", "password");
+            formData.append("username", user.username);
+            formData.append("password", user.password);
+            formData.append("client_id", process.env.REACT_APP_OAUTH_CLIENT_ID);
+formData.append("client_secret", process.env.REACT_APP_OAUTH_CLIENT_SECRET);
+
+            const response = await Apis.post(endpoint["login"], formData, {
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
             });
 
+            // ✅ Lưu token
             cookie.save("token", response.data.access_token);
 
+            // ✅ Lấy thông tin user
             const res = await authApis().get(endpoint["profile"]);
             dispatch({ type: "login", payload: res.data });
 
-            const cartRes = await authApis().get(endpoint['cart']);
+            // ✅ Lấy giỏ hàng hiện tại
+            const cartRes = await authApis().get(endpoint["cart"]);
             let count = 0;
-
             if (cartRes.data.length > 0) {
-                cartRes.data[0].items.forEach(item => {
+                cartRes.data[0].items.forEach((item) => {
                     count += item.quantity;
                 });
             }
-
             dispatchCart({ type: "update", payload: count });
 
+            // ✅ Hiển thị thông báo thành công
             Swal.fire({
                 icon: "success",
                 title: "Đăng nhập thành công",
@@ -63,18 +74,20 @@ const Login = () => {
                 showConfirmButton: false,
             });
 
+            // ✅ Điều hướng theo vai trò
             setTimeout(() => {
                 res.data.role === "customer"
                     ? nav("/")
                     : res.data.role === "staff"
-                        ? nav("/staff/home")
-                        : res.data.role === "manager"
-                            ? nav("/manager/home")
-                            : nav("/");
+                    ? nav("/staff/home")
+                    : res.data.role === "manager"
+                    ? nav("/manager/home")
+                    : nav("/");
             }, 1350);
         } catch (err) {
+            console.error("Đăng nhập thất bại:", err);
             if (err.response) {
-                if (err.response.status === 400) {
+                if (err.response.status === 400 || err.response.status === 401) {
                     setMessage("Tên đăng nhập hoặc mật khẩu không đúng.");
                 }
             } else if (err.message === "Network Error") {
@@ -108,7 +121,6 @@ const Login = () => {
                     </div>
                 )}
 
-                {/* Form đăng nhập thường */}
                 <form onSubmit={handleLogin} className="space-y-4 mb-4">
                     <div className="relative">
                         <UserIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -198,7 +210,6 @@ const Login = () => {
                         Đăng ký ngay
                     </button>
                 </p>
-
             </div>
         </div>
     );
